@@ -1,2 +1,9 @@
 # Deg.SharePointApps.Utilities
-AngularJS utilities for SharePoint App development: automatically resize app part iframes
+* Automatically resize app part iframes
+* Directive for client ribbon bar
+* Utilities for SharePoint property bag management
+* CRUD List Operations
+* Field and Content Types provisioning
+* Helpers for creating and publishing Files
+* App Context Helpers (AppUrl, HostUrl, currentUser, etc)
+
