@@ -35,7 +35,8 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         },
         Items: {
             Create: createListItem,
-            GetAll: getAllItems
+            GetAll: getAllItems,
+            Update: updateListItem
         },
         Columns: {
             CreateAtHost: createRootField
@@ -158,64 +159,47 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         var camlQuery = new SP.CamlQuery();
         camlQuery.set_viewXml(query);
 
-        var collListItem = oList.getItems(camlQuery);
+        var oListItems = oList.getItems(camlQuery);
 
-        appContext.load(collListItem);
+        appContext.load(oListItems);
         appContext.executeQueryAsync(
             Function.createDelegate(this, function () {
                 var entries = [];
-                var itemsCount = collListItem.get_count();
+                var itemsCount = oListItems.get_count();
                 for (var i = 0; i < itemsCount; i++) {
-                    var item = collListItem.itemAt(i);
+                    var item = oListItems.itemAt(i);
                     entries.push(item.get_fieldValues());
                 }
                 deferred.resolve(entries);
             }),
             Function.createDelegate(this, function () {
-                console.log(collListItem);
+                deferred.reject('An error has occurred when retrieving items');
             })
-            /*function (data) {
-                var response = JSON.parse(data.body);
-                deferred.resolve(response.d.results);
-            },
-            function (data) {
-                console.log(data);
-                deferred.reject(data);
-            }*/
         );
         
-        /*
-        getRequestDigest().then(
-            function (requestDigest) {
-                
-                var executor = new SP.RequestExecutor(appweburl);
-                executor.executeAsync(
-                {
-                    method: "POST",
-                    url: "/_api/SP.AppContextSite(@target)/web/lists/getbytitle('" + listName + "')/getitems?" +
-                      "@target='" + hostUrl + "'" + extend,
-                    body: "{ 'query' : {'__metadata': { 'type': 'SP.CamlQuery' }, \"ViewXml\": \"" + query + "\" }}",
-                    headers: {
-                        "Accept": "application/json; odata=verbose",
-                        "Content-Type": "application/json; odata=verbose",
-                        "X-RequestDigest": requestDigest
-                    },
-                    success: function (data) {
-                        var response = JSON.parse(data.body);
-                        deferred.resolve(response.d.results);
-                    },
-                    error: function (data) {
-                        console.log(data);
-                        deferred.reject(data);
-                    }
-                });
-
-            }
-            
-        );*/
-        
         return deferred.promise;
-        
+    }
+
+    function updateListItem(listName, listItemId, listProperties) {
+        var deferred = $q.defer();
+
+        var appContext = new SP.ClientContext(getAppWebUrl());
+        var hostContext = new SP.AppContextSite(appContext, getHostWebUrl());
+
+        var oList = hostContext.get_web().get_lists().getByTitle(listName);
+        var oListItem = oList.getItemById(listItemId);
+
+        angular.forEach(listProperties, function (value, key) {
+            oListItem.set_item(key, value);
+        });
+        oListItem.update();
+
+        appContext.executeQueryAsync(
+            Function.createDelegate(this, function () { deferred.resolve(); }),
+            Function.createDelegate(this, function () { deferred.reject('An error has occurred when updating the item.'); })
+        );
+
+        return deferred.promise;
     }
 
     function createListItem(listName, listProperties, callback) {
@@ -259,7 +243,7 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         }
     }
 
-    function createListInHost(listName, callback) {
+    function createListInHost(listName, callback, listTemplate) {
         var deferred = $q.defer();
         //Get URLs
         var hostUrl = getHostWebUrl();
@@ -273,7 +257,7 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         //Create list
         var listCreationInfo = new SP.ListCreationInformation();
         listCreationInfo.set_title(listName);
-        listCreationInfo.set_templateType(SP.ListTemplateType.genericList);
+        listCreationInfo.set_templateType(listTemplate);
 
         var oList = oWebsite.get_lists().add(listCreationInfo);
 
@@ -877,10 +861,10 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
             },
             success: function (data) {
                 var requestDigest = data.d.GetContextWebInformation.FormDigestValue;
-                if(callback) callback(requestDigest);
+                if (callback) callback({ error: false, requestDigest: requestDigest });
             },
-            error: function (err) {
-                $log.log(JSON.stringify(err));
+            error: function (error) {
+                if (callback) callback({ error: true, errorMessage: JSON.stringify(error) });
             }
         });
     }
