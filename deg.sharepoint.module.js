@@ -1,19 +1,23 @@
 /** 
-* @version 0.2
+* @version 0.3
 * @license MIT
-* by Nick Aranzamendi
+* by Nick Aranzamendi 
+* Contributors: Andres Baez, Gonzalo Barbitta
 */
 
 'use strict';
 angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q', function ($http, $log, $q) {
     return {
         User: {
-            GetCurrentUserName: getUserName
+            GetCurrentUserName: getUserName,
+            GetCurrent: getCurrentUser,
+            GetId: getUserId,
+            GetCurrentUserProfileProperties: getCurrentUserProperties
         },
         CtxInfo: {
             SPAppWebUrl: getAppWebUrl(),
             //SPContextInfo: _spPageContextInfo,
-            SPHostUrl: getHostWebUrl(),
+            SPHostUrl: getHostWebUrl()
         },
         PropBag: {
             SaveObjToCurrentWeb: saveObjToCurrentWebPropertyBag,
@@ -21,12 +25,18 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
             GetValue: getPropertyBagValue,
         },
         Utilities: {
-            GetQsParam: getUrlParam
+            GetQsParam: getUrlParam,
+            GetFormDigest: getFormDigest
         },
         Lists: {
             CreateAtHost: createListInHost,
             AddFieldToListAtHost: addFieldToRootList,
             Exist: existRootList
+        },
+        Items: {
+            Create: createListItem,
+            GetAll: getAllItems,
+            Update: updateListItem
         },
         Columns: {
             CreateAtHost: createRootField
@@ -38,7 +48,15 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
             CreateAtHost: readFromAppWebAndProvisionToHost,
             LoadAtHost: loadFileAtHostWeb,
             CheckOutAtHost: checkOutFileAtHostWeb,
-            PublishFileToHost: publishFileToHostWeb        
+            PublishFileToHost: publishFileToHostWeb
+        },
+        Groups: {
+            LoadAtHost: loadGroupAtHostWeb,
+            CreateAtHost: createGroupAtHostWeb,
+            IsCurrentUserMember: isCurrentUserMemberOfGroup
+        },
+        Taxonomy: {
+            GetTermSetValues: getTermSetValues
         }
     };
     function createCtype(cTypeInfo, callback, sPCtx) {
@@ -64,13 +82,169 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
             $log.log("Error: " + args.get_message());
         }
     }
+    
+    function getRequestDigest() {
+        
+        var promise = $http({
+            method: "POST",
+            url: "/_api/contextinfo",
+            data: {
+                "query":
+                {
+                    "__metadata": { "type": "SP.CamlQuery" },
+                    "ViewXml": ""
+                }
+            },
+            headers: {
+                "accept": "application/json; odata=verbose",
+                "contentType": "text/xml"
+            }
+        })
+        .then(
+            function (data) {
+                return  data.data.d.GetContextWebInformation.FormDigestValue;
+            },
+            function (err) { alert(JSON.stringify(err)); }
+        );
+
+        return promise;
+    };
+    
     // ctypeInfo { Name :'', Description : '', Group: '', ParentContentType: 'optional'}
     function createContentTypeInHost(cTypeInfo, callback) {
         var hostWebContext = getHostWebContext();
         createCtype(cTypeInfo, callback, hostWebContext);
     }
 
-    function createListInHost(listName, callback) {
+    function getCurrentUserProperties() {
+        
+        var deferred = $q.defer();
+        
+        var clientContext = SP.ClientContext.get_current();
+        
+        var peopleManager = new SP.UserProfiles.PeopleManager(clientContext);
+
+        var userProfileProperties = peopleManager.getMyProperties();
+
+        clientContext.load(userProfileProperties);
+        clientContext.executeQueryAsync(
+            function () {
+                deferred.resolve(userProfileProperties.get_userProfileProperties());
+            },
+            function (data) {
+                console.log(data);
+                deferred.reject(data);
+                console.log("Error");
+            }
+        );
+
+        return deferred.promise;
+
+    }
+
+    function getAllItems(listName, _query, extend) {
+
+        var deferred = $q.defer();
+        
+        var query = (_query) ? _query : '<View><Query></Query></View>';
+        //Get URLs
+        var hostUrl = getHostWebUrl();
+        var appweburl = getAppWebUrl();
+        //Get Contexts
+        var appContext = new SP.ClientContext(appweburl);
+        var hostContext = new SP.AppContextSite(appContext, hostUrl);
+
+        var oList = hostContext.get_web().get_lists().getByTitle(listName);
+
+        var camlQuery = new SP.CamlQuery();
+        camlQuery.set_viewXml(query);
+
+        var oListItems = oList.getItems(camlQuery);
+
+        appContext.load(oListItems);
+        appContext.executeQueryAsync(
+            Function.createDelegate(this, function () {
+                var entries = [];
+                var itemsCount = oListItems.get_count();
+                for (var i = 0; i < itemsCount; i++) {
+                    var item = oListItems.itemAt(i);
+                    entries.push(item.get_fieldValues());
+                }
+                deferred.resolve(entries);
+            }),
+            Function.createDelegate(this, function () {
+                deferred.reject('An error has occurred when retrieving items');
+            })
+        );
+        
+        return deferred.promise;
+    }
+
+    function updateListItem(listName, listItemId, listProperties) {
+        var deferred = $q.defer();
+
+        var appContext = new SP.ClientContext(getAppWebUrl());
+        var hostContext = new SP.AppContextSite(appContext, getHostWebUrl());
+
+        var oList = hostContext.get_web().get_lists().getByTitle(listName);
+        var oListItem = oList.getItemById(listItemId);
+
+        angular.forEach(listProperties, function (value, key) {
+            oListItem.set_item(key, value);
+        });
+        oListItem.update();
+
+        appContext.executeQueryAsync(
+            Function.createDelegate(this, function () { deferred.resolve(); }),
+            Function.createDelegate(this, function () { deferred.reject('An error has occurred when updating the item.'); })
+        );
+
+        return deferred.promise;
+    }
+
+    function createListItem(listName, listProperties, callback) {
+
+        //Get URLs
+        var hostUrl = getHostWebUrl();
+        var appweburl = getAppWebUrl();
+        //Get Contexts
+        var appContext = new SP.ClientContext(appweburl);
+        var hostContext = new SP.AppContextSite(appContext, hostUrl);
+        //Get root web
+        var oList = hostContext.get_web().get_lists().getByTitle(listName);
+
+        var itemCreateInfo = new SP.ListItemCreationInformation();
+        var oListItem = oList.addItem(itemCreateInfo);
+
+        angular.forEach(listProperties, function (value, key) {
+            if (value == "currentuser") {
+                var current = hostContext.get_web().get_currentUser();
+                oListItem.set_item(key, current);
+            } else {
+                oListItem.set_item(key, value);
+            }
+
+        });
+        oListItem.update();
+
+        appContext.load(oListItem);
+        appContext.executeQueryAsync(
+            function (sender, args) {
+                checkCallback();
+            },
+            function (sender, args) {
+                $log.log('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+            }
+        );
+        function checkCallback() {
+            if (callback) {
+                callback();
+            }
+        }
+    }
+
+    function createListInHost(listName, callback, listTemplate) {
+        var deferred = $q.defer();
         //Get URLs
         var hostUrl = getHostWebUrl();
         var appweburl = getAppWebUrl();
@@ -83,7 +257,7 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         //Create list
         var listCreationInfo = new SP.ListCreationInformation();
         listCreationInfo.set_title(listName);
-        listCreationInfo.set_templateType(SP.ListTemplateType.genericList);
+        listCreationInfo.set_templateType(listTemplate);
 
         var oList = oWebsite.get_lists().add(listCreationInfo);
 
@@ -94,6 +268,7 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
             },
             function (sender, args) {
                 $log.log('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+                deferred.reject("Error creating " + listName + " at host.");
             }
         );
 
@@ -101,11 +276,12 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
             if (callback) {
                 callback();
             }
+            deferred.resolve();
         }
     }
 
     function existRootList(listName, callback) {
-        
+        var deferred = $q.defer();
         //Get URLs
         var hostUrl = getHostWebUrl();
         var appweburl = getAppWebUrl();
@@ -114,15 +290,16 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         var hostContext = new SP.AppContextSite(appContext, hostUrl);
         //Get root web
         var oList = hostContext.get_web().get_lists().getByTitle(listName);
-        
+
         appContext.load(oList);
         appContext.executeQueryAsync(
             function (sender, args) {
                 checkCallback();
+                deferred.resolve();
             },
             function (sender, args) {
                 $log.log('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
-                
+                deferred.reject();
             }
         );
 
@@ -130,14 +307,14 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
             if (callback) {
                 callback();
             }
-            
-        }
-        
 
+        }
+
+        return deferred.promise;
     }
 
-    function addFieldToRootList(listName, fieldDisplayName, fieldName, fieldType, fieldExtra, callback) {
-        //var deferred = $.Deferred();
+    function addFieldToRootList(listName, fieldDisplayName, fieldName, required, fieldType, fieldExtra, callback) {
+
         var deferred = $q.defer();
         //Get URLs
         var hostUrl = getHostWebUrl();
@@ -149,49 +326,95 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         var oList = hostContext.get_web().get_lists().getByTitle(listName);
 
         var extraTypeDefinition = "";
-        if (fieldType == "URL") {
-            extraTypeDefinition = "Format=\'" + fieldExtra + "\'";
+        switch (fieldType) {
+            case "URL":
+            case "DateTime":
+                if (fieldExtra != "")
+                    extraTypeDefinition = "Format=\'" + fieldExtra + "\'";
+                break;
+            case "Note":
+                if (fieldExtra != "")
+                    extraTypeDefinition = "RichText=\'" + ((fieldExtra) ? "TRUE" : "FALSE") + "\'";
+                break;
+            case "User":
+                if (fieldExtra != "")
+                    extraTypeDefinition = "UserSelectionMode=\'" + fieldExtra + "\'";
+                break;
         }
 
-        var fieldDefinition = "<Field DisplayName=\'" + fieldName + "\' Type=\'" + fieldType + "\' " + extraTypeDefinition + "/>";
+
+        var requiredTxt = (required) ? "TRUE" : "FALSE";
+        var fieldDefinition = "<Field DisplayName=\'" + fieldDisplayName + "\' Name=\'" + fieldName + "\' Required=\'" + requiredTxt + "\' Type=\'" + fieldType + "\' " + extraTypeDefinition + "/>";
         var oField = oList.get_fields().addFieldAsXml(
             fieldDefinition,
             true,
-            SP.AddFieldOptions.defaultValue
+            SP.AddFieldOptions.addFieldInternalNameHint
         );
-
-        var fieldNumber;
-        switch (fieldType) {
-            case "Number":
-                fieldNumber = appContext.castTo(oField, SP.FieldNumber);
-                break;
-            case "URL":
-                fieldNumber = appContext.castTo(oField, SP.FieldUrl);
-                break;
-            case "User":
-                fieldNumber = appContext.castTo(oField, SP.FieldUser);
-                break;
-            case "TaxonomyFieldType":
-                fieldNumber = appContext.castTo(oField, SP.Field);
-                break;
-            default:
-                fieldNumber = appContext.castTo(oField, SP.FieldText);
-                break;
-        }
-
-        fieldNumber.set_title(fieldDisplayName);
-        fieldNumber.update();
 
         appContext.load(oField);
-        appContext.executeQueryAsync(
-            function (sender, args) {
-                checkCallback();
-            },
-            function (sender, args) {
-                $log.log('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
-                deferred.reject();
-            }
-        );
+
+        switch (fieldType) {
+            case "Choice":
+                var fieldConverted = appContext.castTo(oField, SP.FieldChoice);
+                fieldConverted.set_choices(fieldExtra);
+                fieldConverted.update();
+                appContext.executeQueryAsync(
+                    function (sender, args) {
+                        checkCallback();
+                    },
+                    function (sender, args) {
+                        $log.log('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+                        deferred.reject();
+                    }
+                );
+                break;
+            case "TaxonomyFieldType":
+            case "TaxonomyFieldTypeMulti":
+                if (fieldExtra) {
+                    var session = SP.Taxonomy.TaxonomySession.getTaxonomySession(appContext);
+                    var store = session.getDefaultSiteCollectionTermStore();
+                    var group = store.get_groups().getByName(fieldExtra.TaxonomyGroup);
+                    var set = group.get_termSets().getByName(fieldExtra.TaxonomySet);
+
+                    appContext.load(store, "Id");
+                    appContext.load(set, "Id");
+                    appContext.executeQueryAsync(
+                        function (sender, args) {
+                            var fieldConverted = appContext.castTo(oField, SP.Taxonomy.TaxonomyField);
+                            fieldConverted.set_sspId(store.get_id());
+                            fieldConverted.set_termSetId(set.get_id());
+                            fieldConverted.set_createValuesInEditForm(fieldExtra.CreateValuesInEditForm);
+                            fieldConverted.set_allowMultipleValues(fieldExtra.AllowMultipleValues);
+                            fieldConverted.update();
+                            appContext.executeQueryAsync(
+                                function (sender, args) {
+                                    checkCallback();
+                                },
+                                function (sender, args) {
+                                    $log.log('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+                                    deferred.reject();
+                                }
+                            );
+                        },
+                        function (sender, args) {
+                            alert("Error creating TaxonomyFieldType");
+                        }
+                    );
+                }
+
+                break;
+            default:
+                appContext.executeQueryAsync(
+                    function (sender, args) {
+                        checkCallback();
+                    },
+                    function (sender, args) {
+                        $log.log('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+                        deferred.reject();
+                    }
+                );
+                break;
+        }
 
         function checkCallback() {
             if (callback) {
@@ -261,7 +484,36 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         function onGetUserNameFail(sender, args) {
             $log.log('Failed to get user name. Error:' + args.get_message());
         }
+    }
 
+    function getCurrentUser(callback) {
+        var context = SP.ClientContext.get_current();
+        var user = context.get_web().get_currentUser();
+
+        context.load(user);
+        context.executeQueryAsync(onGetUserNameSuccess, onGetUserNameFail);
+
+        function onGetUserNameSuccess() {
+            if (callback) callback(user);
+        }
+        function onGetUserNameFail(sender, args) {
+            $log.log('Failed to get user. Error: ' + args.get_message());
+        }
+    }
+
+    function getUserId(loginName, callback) {
+        var context = SP.ClientContext.get_current();
+        var user = context.get_web().ensureUser(loginName);
+        context.load(user);
+        context.executeQueryAsync(onEnsureUserSuccess, onEnsureUserFail);
+
+        function onEnsureUserSuccess() {
+            if (callback) callback(user.get_id());
+        }
+
+        function onEnsureUserFail(sender, args) {
+            $log.log('Failed to ensure user. Error: ' + args.get_message());
+        }
     }
 
     function getAppWebUrl() {
@@ -475,6 +727,109 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         }
     }
 
+    /** Groups **/
+    function loadGroupAtHostWeb(groupName, callback) {
+        var hostWebUrl = getHostWebUrl();
+        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
+        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+
+        var groupCollection = hostWebContext.get_web().get_siteGroups();
+        var group = groupCollection.getByName(groupName);
+        hostWebContext.load(group);
+
+        hostWebContext.executeQueryAsync(onGetGroupSuccess, onGetGroupFail);
+
+        function onGetGroupSuccess() {
+            if (callback) callback({ Success: true, Message: "Group loaded from host web successfully" });
+        }
+        function onGetGroupFail(data, args) {
+            if (callback) callback({ Success: false, Message: "Failed to load group from host web. Error: " + args.get_message() });
+        }
+    }
+
+    function createGroupAtHostWeb(groupName, callback) {
+        var hostWebUrl = getHostWebUrl();
+        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
+        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+
+        var group = new SP.GroupCreationInformation();
+        group.set_title(groupName);
+
+        var oGroup = hostWebContext.get_web().get_siteGroups().add(group);
+        hostWebContext.load(oGroup);
+
+        hostWebContext.executeQueryAsync(onCreateGroupSuccess, onCreateGroupFail);
+
+        function onCreateGroupSuccess() {
+            if (callback) callback({ Success: true, Message: "Group created at host web successfully" });
+        }
+        function onCreateGroupFail(data, args) {
+            if (callback) callback({ Success: false, Message: "Failed to create group at host web. Error: " + args.get_message() });
+        }
+    }
+
+    function isCurrentUserMemberOfGroup(groupName, callback) {
+        var hostWebUrl = getHostWebUrl();
+        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
+        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+
+        var groupCollection = hostWebContext.get_web().get_siteGroups();
+        var group = groupCollection.getByName(groupName);
+        hostWebContext.load(group);
+
+        var currentUser = hostWebContext.get_web().get_currentUser();
+        hostWebContext.load(currentUser);
+
+        var groupUsers = group.get_users();
+        hostWebContext.load(groupUsers);
+
+        hostWebContext.executeQueryAsync(onGetGroupsSuccess, onGetGroupsFailure);
+
+        function onGetGroupsSuccess(sender, args) {
+            var isUserInGroup = false;
+            var groupUserEnumerator = groupUsers.getEnumerator();
+            while (groupUserEnumerator.moveNext()) {
+                var groupUser = groupUserEnumerator.get_current();
+                if (groupUser.get_id() == currentUser.get_id()) {
+                    isUserInGroup = true;
+                    break;
+                }
+            }
+            if (callback) callback({ Success: true, IsUserInGroup: isUserInGroup });
+        }
+
+        function onGetGroupsFailure(sender, args) {
+            if (callback) callback({ Success: false, Message: "Failed to create group at host web. Error: " + args.get_message() });
+        }
+    }
+
+    /** Taxonomy **/
+    function getTermSetValues(taxonomyGroup, termSetName, callback) {
+        var context = SP.ClientContext.get_current();
+
+        var session = SP.Taxonomy.TaxonomySession.getTaxonomySession(context);
+        var termStore = session.getDefaultSiteCollectionTermStore();
+        var group = termStore.get_groups().getByName(taxonomyGroup);
+        var termSet = group.get_termSets().getByName(termSetName);
+        var terms = termSet.getAllTerms();
+
+        context.load(terms);
+        context.executeQueryAsync(
+            function () {
+                var values = [];
+                var termEnumerator = terms.getEnumerator();
+                while (termEnumerator.moveNext()) {
+                    var currentTerm = termEnumerator.get_current();
+                    values.push({ 'id': currentTerm.get_id(), 'name': currentTerm.get_name() });
+                }
+                if (callback) callback(values);
+            },
+            function (sender, args) {
+                $log.log(args.get_message());
+            }
+        );
+    }
+
     // Helpers
     function getUrlParam(key) {
         var vars = [], hash;
@@ -496,7 +851,23 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
         }
         return relativeUrl;
     }
-
+    function getFormDigest(callback) {
+        $.ajax({
+            url: getAppWebUrl() + "/_api/contextinfo",
+            type: "POST",
+            headers: {
+                "accept": "application/json;odata=verbose",
+                "contentType": "text/xml"
+            },
+            success: function (data) {
+                var requestDigest = data.d.GetContextWebInformation.FormDigestValue;
+                if (callback) callback({ error: false, requestDigest: requestDigest });
+            },
+            error: function (error) {
+                if (callback) callback({ error: true, errorMessage: JSON.stringify(error) });
+            }
+        });
+    }
 }])
 .directive('ngAppFrame', ['$timeout', '$window', function ($timeout, $window) {
 
