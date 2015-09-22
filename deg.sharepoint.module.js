@@ -882,17 +882,17 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
                 },
                 function (newHeight, oldHeight) {
 
-                    if (newHeight != oldHeight) {
-                        $timeout(function () {
-                            if(typeof attrs.minheight == 'undefined'){
-                                attrs.minheight = 17;
-                            }
-                            var height = attrs.minheight ? newHeight + parseInt(attrs.minheight) : newHeight;
-                            var id = getQsParam("SenderId");
-                            var message = "<message senderId=" + id + ">resize(100%," + height + ")</message>";
-                            $window.parent.postMessage(message, "*");
-                        }, 0);// timeout needed to wait for DOM to update
-                    }
+                    //if (newHeight != oldHeight) {
+                    $timeout(function () {
+                        if(typeof attrs.minheight == 'undefined'){
+                            attrs.minheight = 17;
+                        }
+                        var height = attrs.minheight ? newHeight + parseInt(attrs.minheight) : newHeight;
+                        var id = getQsParam("SenderId");
+                        var message = "<message senderId=" + id + ">resize(100%," + height + ")</message>";
+                        $window.parent.postMessage(message, "*");
+                    }, 0);// timeout needed to wait for DOM to update
+                    //}
                 }
             );
         }
