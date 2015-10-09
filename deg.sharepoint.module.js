@@ -885,7 +885,7 @@ angular.module("Deg.SharePoint", []).service('spService', ['$http', '$log', '$q'
                     //if (newHeight != oldHeight) {
                     $timeout(function () {
                         if(typeof attrs.minheight == 'undefined'){
-                            attrs.minheight = 17;
+                            attrs.minheight = 50;
                         }
                         var height = attrs.minheight ? newHeight + parseInt(attrs.minheight) : newHeight;
                         var id = getQsParam("SenderId");
