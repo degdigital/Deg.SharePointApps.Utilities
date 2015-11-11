@@ -1,11 +1,10 @@
-shpUtility.factory('shpContentType', ['$q', function($q) {
+shpUtility.factory('shpContentType', function() {
 
 	return {
-		CreateAtHost = function(cTypeInfo, callback) {
+		CreateAtHost: function(cTypeInfo, callback) {
 			var hostWebContext = getHostWebContext();
 			createCtype(cTypeInfo, callback, hostWebContext);
-		},
-		Create = createCtype
+		}
 	}
 
 
@@ -36,4 +35,4 @@ shpUtility.factory('shpContentType', ['$q', function($q) {
 	}
 
 
-}]);
+});

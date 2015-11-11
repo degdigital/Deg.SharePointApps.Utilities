@@ -1,6 +1,15 @@
-DegSharepointUtility.File = {
+shpUtility.factory('shpFile', ['$http', function($http) {
 
-    CreateAtHost: function(appWebFileUrl, serverRelativeUrl, fileName, isPublishRequired, callback) {
+
+    return {
+        CreateAtHost: readFromAppWebAndProvisionToHost,
+        LoadAtHost: loadFileAtHostWeb,
+        CheckOutAtHost: checkOutFileAtHostWeb,
+        PublishFileToHost: publishFileToHostWeb,
+        UploadFileToHostWeb: uploadFileToHostWeb
+    }
+
+    function readFromAppWebAndProvisionToHost(appWebFileUrl, serverRelativeUrl, fileName, isPublishRequired, callback) {
         $http.get(appWebFileUrl).
         success(function(fileContents) {
             if (fileContents !== undefined && fileContents.length > 0) {
@@ -35,9 +44,48 @@ DegSharepointUtility.File = {
                 Message: 'Request for file in app web failed: ' + status
             });
         });
-    },
+    }
 
-    LoadAtHost: function(fileRelativeUrl, callback) {
+    function uploadFileToHostWeb(serverRelativeUrl, fileName, contents, isPublishRequired, callback) {
+        var hostWebUrl = getHostWebUrl();
+        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+
+        var createInfo = new SP.FileCreationInformation();
+        createInfo.set_content(new SP.Base64EncodedByteArray());
+        for (var i = 0; i < contents.length; i++) {
+            createInfo.get_content().append(contents.charCodeAt(i));
+        }
+        createInfo.set_overwrite(true);
+        createInfo.set_url(fileName);
+        var files = hostWebContext.get_web().getFolderByServerRelativeUrl(serverRelativeUrl).get_files();
+        hostWebContext.load(files);
+        files.add(createInfo);
+
+        hostWebContext.executeQueryAsync(onProvisionFileSuccess, onProvisionFileFail);
+
+        function onProvisionFileSuccess() {
+            var fileRelativeUrl = serverRelativeUrl + '/' + fileName;
+            if (isPublishRequired) {
+                publishFileToHostWeb(fileRelativeUrl, function(result) {
+                    if (callback) callback(result);
+                });
+            } else {
+                if (callback) callback({
+                    Success: true,
+                    Message: 'File published in host web successfully: ' + fileRelativeUrl
+                });
+            }
+        }
+
+        function onProvisionFileFail(sender, args) {
+            if (callback) callback({
+                Success: false,
+                Message: 'Failed to provision file into host web. Error: ' + sender.statusCode
+            });
+        }
+    }
+
+    function loadFileAtHostWeb(fileRelativeUrl, callback) {
         var hostWebUrl = getHostWebUrl();
         var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
         var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
@@ -61,9 +109,9 @@ DegSharepointUtility.File = {
                 Message: 'Failed to read file from host web. Error: ' + sender.statusCode
             });
         }
-    },
+    }
 
-    CheckOutAtHost: function(fileRelativeUrl, callback) {
+    function checkOutFileAtHostWeb(fileRelativeUrl, callback) {
         var hostWebUrl = getHostWebUrl();
         var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
         var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
@@ -107,9 +155,9 @@ DegSharepointUtility.File = {
                 Message: 'Failed to checkout file at host web. Error: ' + sender.statusCode
             });
         }
-    },
+    }
 
-    PublishFileToHost: function(fileRelativeUrl, callback) {
+    function publishFileToHostWeb(fileRelativeUrl, callback) {
         var hostWebUrl = getHostWebUrl();
         var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
         var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
@@ -154,6 +202,6 @@ DegSharepointUtility.File = {
                 Message: 'Failed to publish file into host web. Error: ' + sender.statusCode
             });
         }
-    };
+    }
 
-};
+}]);

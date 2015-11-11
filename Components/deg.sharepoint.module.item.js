@@ -1,11 +1,17 @@
-DegSharepointUtility.Item = {
+shpUtility.factory('shpItem', ['$log', '$q', 'shpCommon', function($log, $q, shpCommon) {
 
+	//Get URLs
+	var hostUrl = shpCommon.SPHostUrl;
+	var appweburl = shpCommon.SPAppWebUrl;
+	
+	return {
+		Create: createListItem,
+		GetAll: getAllItems,
+		Update: updateListItem
+	}
 
-	Create: function(listName, listProperties, callback) {
+	function createListItem(listName, listProperties, callback) {
 
-		//Get URLs
-		var hostUrl = getHostWebUrl();
-		var appweburl = getAppWebUrl();
 		//Get Contexts
 		var appContext = new SP.ClientContext(appweburl);
 		var hostContext = new SP.AppContextSite(appContext, hostUrl);
@@ -41,16 +47,13 @@ DegSharepointUtility.Item = {
 				callback();
 			}
 		}
-	},
+	}
 
-	GetAll: function(listName, _query, extend) {
+	function getAllItems(listName, _query, extend) {
 
 		var deferred = $q.defer();
 
 		var query = (_query) ? _query : '<View><Query></Query></View>';
-		//Get URLs
-		var hostUrl = getHostWebUrl();
-		var appweburl = getAppWebUrl();
 		//Get Contexts
 		var appContext = new SP.ClientContext(appweburl);
 		var hostContext = new SP.AppContextSite(appContext, hostUrl);
@@ -79,9 +82,9 @@ DegSharepointUtility.Item = {
 		);
 
 		return deferred.promise;
-	},
-	,
-	Update: function(listName, listItemId, listProperties) {
+	}
+
+	function updateListItem(listName, listItemId, listProperties) {
 		var deferred = $q.defer();
 
 		var appContext = new SP.ClientContext(getAppWebUrl());
@@ -107,7 +110,4 @@ DegSharepointUtility.Item = {
 		return deferred.promise;
 	}
 
-
-
-
-}
+}]);

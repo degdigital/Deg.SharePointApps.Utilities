@@ -1,19 +1,27 @@
-DegSharepointUtility.PropertyBag = {
+shpUtility.factory('shpPropertyBag', ['$log', '$http', 'shpCommon', function($log, $http, shpCommon) {
 
+    //Get URLs
+    var hostUrl = shpCommon.SPHostUrl;
+    var appweburl = shpCommon.SPAppWebUrl;
 
-    SaveObjToCurrentWeb: function(jsonObject, callback) {
+    return {
+        SaveObjToCurrentWeb: saveObjToCurrentWebPropertyBag,
+        SaveObjToRootWeb: saveObjToRootWebPropertyBag,
+        GetValue: getPropertyBagValue
+    }
+
+    function saveObjToCurrentWebPropertyBag(jsonObject, callback) {
         var oWebsite = clientCtx.get_web();
-        savePropertyBag(oWebsite, jsonObject, callback)
+        savePropertyBag(oWebsite, jsonObject, callback);
+    }
 
-    },
-
-    SaveObjToRootWeb: function(jsonObject, callback) {
+    function saveObjToRootWebPropertyBag(jsonObject, callback) {
         var oWebsite = clientCtx.get_site().get_rootWeb();
         savePropertyBag(oWebsite, jsonObject, callback);
-    },
+    }
 
-    GetValue: function(key, callback, optionalWebUrl) {
-        var rootPath = optionalWebUrl || getAppWebUrl();
+    function getPropertyBagValue(key, callback, optionalWebUrl) {
+        var rootPath = optionalWebUrl || appweburl;
         var url = rootPath + '/_api/web/AllProperties?$select=' + key;
 
         $http.get(url).
@@ -29,4 +37,4 @@ DegSharepointUtility.PropertyBag = {
         });
     }
 
-}
+}]);

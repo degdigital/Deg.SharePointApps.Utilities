@@ -1,10 +1,17 @@
-DegSharepointUtility.List = {
+shpUtility.factory('shpList', ['$log', '$q', 'shpCommon', function($log, $q, shpCommon) {
 
-    CreateAtHost: function(listName, callback, listTemplate) {
-        var deferred = $q.defer();
-        //Get URLs
-        var hostUrl = getHostWebUrl();
-        var appweburl = getAppWebUrl();
+    //Get URLs
+    var hostUrl = shpCommon.SPHostUrl;
+    var appweburl = shpCommon.SPAppWebUrl;
+
+    return {
+        CreateAtHost: createListInHost,
+        AddFieldToListAtHost: addFieldToRootList,
+        Exist: existRootList
+    }
+
+    function createListInHost(listName, callback, listTemplate) {
+        var deferred = $q.defer();        
         //Get Contexts
         var appContext = new SP.ClientContext(appweburl);
         var hostContext = new SP.AppContextSite(appContext, hostUrl);
@@ -35,13 +42,11 @@ DegSharepointUtility.List = {
             }
             deferred.resolve();
         }
-    },
-    AddFieldToListAtHost: function(listName, fieldDisplayName, fieldName, required, fieldType, fieldExtra, callback) {
+    }
+
+    function addFieldToRootList(listName, fieldDisplayName, fieldName, required, fieldType, fieldExtra, callback) {
 
         var deferred = $q.defer();
-        //Get URLs
-        var hostUrl = getHostWebUrl();
-        var appweburl = getAppWebUrl();
         //Get Contexts
         var appContext = new SP.ClientContext(appweburl);
         var hostContext = new SP.AppContextSite(appContext, hostUrl);
@@ -147,13 +152,11 @@ DegSharepointUtility.List = {
         }
         return deferred.promise;
 
-    },
+    }
 
-    Exist: function(listName, callback) {
+
+    function existRootList(listName, callback) {
         var deferred = $q.defer();
-        //Get URLs
-        var hostUrl = getHostWebUrl();
-        var appweburl = getAppWebUrl();
         //Get Contexts
         var appContext = new SP.ClientContext(appweburl);
         var hostContext = new SP.AppContextSite(appContext, hostUrl);

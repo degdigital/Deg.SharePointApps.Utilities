@@ -9,9 +9,20 @@
 
 
 
-# Sharepoint Common factory (shpCommon)
-****	GetFormDigest
-****	SPAppWebUrl
-****	SPHostUrl
-****	HostWebContext
-****	GetQsParam
+# Common functionallity (shpCommon)
+* GetFormDigest
+* SPAppWebUrl
+* SPHostUrl
+* HostWebContext
+* GetQsParam
+
+
+# ContentType functionallity (shpContentType)
+* CreateAtHost: Creates a content type in root site.
+
+# Item functionallity (shpItem)
+* Create
+* GetAll
+* Update
+
+# Item functionallity (shpItem)

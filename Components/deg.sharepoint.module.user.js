@@ -1,8 +1,13 @@
-var DegSharepointUtility = {};
+shpUtility.factory('shpUser', ['$log', '$q', 'shpCommon', function($log, $q, shpCommon) {
 
-DegSharepointUtility.User = {
+    return {
+        GetCurrentUserName: getUserName,
+        GetCurrent: getCurrentUser,
+        GetId: getUserId,
+        GetCurrentUserProfileProperties: getCurrentUserProperties
+    }
 
-    GetCurrentUserName: function(callback) {
+    function getUserName(callback) {
         try {
             var clientCtx = SP.ClientContext.get_current();
             var user = clientCtx.get_web().get_currentUser();
@@ -20,9 +25,9 @@ DegSharepointUtility.User = {
         function onGetUserNameFail(sender, args) {
             $log.log('Failed to get user name. Error:' + args.get_message());
         }
-    },
+    }
 
-    GetCurrent: function(callback) {
+    function getCurrentUser(callback) {
         var context = SP.ClientContext.get_current();
         var user = context.get_web().get_currentUser();
 
@@ -38,7 +43,7 @@ DegSharepointUtility.User = {
         }
     },
 
-    GetId: function(loginName, callback) {
+    function getUserId(loginName, callback) {
         var context = SP.ClientContext.get_current();
         var user = context.get_web().ensureUser(loginName);
         context.load(user);
@@ -53,7 +58,7 @@ DegSharepointUtility.User = {
         }
     },
 
-    GetCurrentUserProfileProperties: function() {
+    function getCurrentUserProperties() {
 
         var deferred = $q.defer();
 
@@ -77,4 +82,4 @@ DegSharepointUtility.User = {
 
     }
 
-};
+}]);

@@ -4,8 +4,9 @@ shpUtility.factory('shpCommon', function() {
 		GetFormDigest: getFormDigest,
 		SPAppWebUrl: getAppWebUrl(),
 		SPHostUrl: getHostWebUrl(),
-		HostWebContext: getHostWebContext,
-		GetQsParam: getUrlParam
+		HostWebContext: getHostWebContext(),
+		GetQsParam: getUrlParam,
+		GetRelativeUrlFromAbsolute:	getRelativeUrlFromAbsolute
 	}
 
 	function getUrlParam(key) {
