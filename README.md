@@ -7,3 +7,11 @@
 * Helpers for creating and publishing Files
 * App Context Helpers (AppUrl, HostUrl, currentUser, etc)
 
+
+
+# Sharepoint Common factory (shpCommon)
+****	GetFormDigest
+****	SPAppWebUrl
+****	SPHostUrl
+****	HostWebContext
+****	GetQsParam
