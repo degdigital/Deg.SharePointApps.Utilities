@@ -1,0 +1,1 @@
+var shpUtility = angular.module("Deg.SharePoint", []);
