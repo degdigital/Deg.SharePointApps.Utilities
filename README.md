@@ -1,3 +1,13 @@
+# Setup environment
+
+* npm install --save-dev gulp
+* npm install --save-dev gulp-concat gulp-uglify gulp-rename
+
+# Download it using bower
+
+* bower install DegSharepointUtilities
+
+
 # Deg.SharePointApps.Utilities
 * Automatically resize app part iframes
 * Directive for client ribbon bar
@@ -6,13 +16,6 @@
 * Field and Content Types provisioning
 * Helpers for creating and publishing Files
 * App Context Helpers (AppUrl, HostUrl, currentUser, etc)
-
-# How to Install it
-
-*npm install --save-dev gulp
-*npm install --save-dev gulp-concat gulp-uglify gulp-rename
-
-*bower install DegSharepointUtilities
 
 
 # Common (shpCommon)
