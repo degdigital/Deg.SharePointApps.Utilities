@@ -4,24 +4,24 @@ var concat = require('gulp-concat');
 
 var config = {
     componentSrc: [
-        'Components/deg.sharepoint.module.init.js',
-        'Components/deg.sharepoint.module.common.js',
-        'Components/deg.sharepoint.module.column.js',
-        'Components/deg.sharepoint.module.contenttype.js',
-        'Components/deg.sharepoint.module.file.js',
-        'Components/deg.sharepoint.module.group.js',
-        'Components/deg.sharepoint.module.item.js',
-        'Components/deg.sharepoint.module.list.js',
-        'Components/deg.sharepoint.module.propertybag.js',
-        'Components/deg.sharepoint.module.user.js',
-        'Components/deg.sharepoint.module.service.js'        
+        'src/components/deg.sharepoint.module.init.js',
+        'src/components/deg.sharepoint.module.common.js',
+        'src/components/deg.sharepoint.module.column.js',
+        'src/components/deg.sharepoint.module.contenttype.js',
+        'src/components/deg.sharepoint.module.file.js',
+        'src/components/deg.sharepoint.module.group.js',
+        'src/components/deg.sharepoint.module.item.js',
+        'src/components/deg.sharepoint.module.list.js',
+        'src/components/deg.sharepoint.module.propertybag.js',
+        'src/components/deg.sharepoint.module.user.js',
+        'src/components/deg.sharepoint.module.service.js'        
     ]
 }
 
 gulp.task('generate-components', function () {
     return gulp.src(config.componentSrc)
         .pipe(concat('deg.sharepoint.module.js'))
-        .pipe(gulp.dest('./'));
+        .pipe(gulp.dest('./src/'));
 
 });
 
