@@ -9,8 +9,11 @@
 
 # How to Install it
 
-npm install --save-dev gulp
-npm install --save-dev gulp-concat gulp-uglify gulp-rename
+*npm install --save-dev gulp
+*npm install --save-dev gulp-concat gulp-uglify gulp-rename
+
+*bower install DegSharepointUtilities
+
 
 # Common (shpCommon)
 * GetFormDigest
