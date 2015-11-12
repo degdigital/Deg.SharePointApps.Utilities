@@ -14,11 +14,5 @@
   ],
   "homepage": "https://github.com/degdigital/Deg.SharePointApps.Utilities",
   "moduleType": [],
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ]
+  "ignore": ["*", "!dist/*"]
 }
