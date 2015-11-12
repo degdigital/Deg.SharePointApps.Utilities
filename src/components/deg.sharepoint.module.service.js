@@ -8,7 +8,7 @@ shpUtility.service('spService', ['$http', '$log', '$q',
     'shpContentType',
     'shpFile',
     'shpColumn',
-    'shpGroup'
+    'shpGroup',
 
     function($http, $log, $q, shpCommon, shpUser, shpPropertyBag, shpItem, shpList, shpContentType, shpFile, shpColumn, shpGroup) {
 

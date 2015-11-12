@@ -41,7 +41,7 @@ shpUtility.factory('shpUser', ['$log', '$q', 'shpCommon', function($log, $q, shp
         function onGetUserNameFail(sender, args) {
             $log.log('Failed to get user. Error: ' + args.get_message());
         }
-    },
+    }
 
     function getUserId(loginName, callback) {
         var context = SP.ClientContext.get_current();
@@ -56,7 +56,7 @@ shpUtility.factory('shpUser', ['$log', '$q', 'shpCommon', function($log, $q, shp
         function onEnsureUserFail(sender, args) {
             $log.log('Failed to ensure user. Error: ' + args.get_message());
         }
-    },
+    }
 
     function getCurrentUserProperties() {
 

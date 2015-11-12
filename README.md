@@ -7,9 +7,12 @@
 * Helpers for creating and publishing Files
 * App Context Helpers (AppUrl, HostUrl, currentUser, etc)
 
+# How to Install it
 
+npm install --save-dev gulp
+npm install --save-dev gulp-concat gulp-uglify gulp-rename
 
-# Common functionallity (shpCommon)
+# Common (shpCommon)
 * GetFormDigest
 * SPAppWebUrl
 * SPHostUrl
@@ -17,12 +20,12 @@
 * GetQsParam
 
 
-# ContentType functionallity (shpContentType)
+# ContentType (shpContentType)
 * CreateAtHost: Creates a content type in root site.
 
-# Item functionallity (shpItem)
+# Item (shpItem)
 * Create
 * GetAll
 * Update
 
-# Item functionallity (shpItem)
+# List (shpList)

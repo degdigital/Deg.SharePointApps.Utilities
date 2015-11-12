@@ -1,5 +1,8 @@
-shpUtility.factory('shpFile', ['$http', function($http) {
+shpUtility.factory('shpFile', ['$http', 'shpCommon', function($http, shpCommon) { 
 
+    //Get URLs
+    var hostUrl = shpCommon.SPHostUrl;
+    var appweburl = shpCommon.SPAppWebUrl;
 
     return {
         CreateAtHost: readFromAppWebAndProvisionToHost,
@@ -47,8 +50,8 @@ shpUtility.factory('shpFile', ['$http', function($http) {
     }
 
     function uploadFileToHostWeb(serverRelativeUrl, fileName, contents, isPublishRequired, callback) {
-        var hostWebUrl = getHostWebUrl();
-        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+        var hostWebUrl = hostUrl;//getHostWebUrl();
+        var hostWebContext = new SP.ClientContext(shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl));
 
         var createInfo = new SP.FileCreationInformation();
         createInfo.set_content(new SP.Base64EncodedByteArray());
@@ -86,10 +89,8 @@ shpUtility.factory('shpFile', ['$http', function($http) {
     }
 
     function loadFileAtHostWeb(fileRelativeUrl, callback) {
-        var hostWebUrl = getHostWebUrl();
-        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
-        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
-
+        var serverRelativeUrl = shpCommon.GetRelativeUrlFromAbsolute(hostUrl);
+        var hostWebContext = new SP.ClientContext(serverRelativeUrl);
         var fileUrl = serverRelativeUrl + fileRelativeUrl;
         var file = hostWebContext.get_web().getFileByServerRelativeUrl(fileUrl);
         hostWebContext.load(file);
@@ -112,9 +113,9 @@ shpUtility.factory('shpFile', ['$http', function($http) {
     }
 
     function checkOutFileAtHostWeb(fileRelativeUrl, callback) {
-        var hostWebUrl = getHostWebUrl();
-        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
-        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+        var hostWebUrl = hostUrl;//getHostWebUrl();
+        var serverRelativeUrl = shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl);
+        var hostWebContext = new SP.ClientContext(shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl));
 
         var fileUrl = serverRelativeUrl + fileRelativeUrl;
         var file = hostWebContext.get_web().getFileByServerRelativeUrl(fileUrl);
@@ -158,9 +159,9 @@ shpUtility.factory('shpFile', ['$http', function($http) {
     }
 
     function publishFileToHostWeb(fileRelativeUrl, callback) {
-        var hostWebUrl = getHostWebUrl();
-        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
-        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+        var hostWebUrl = hostUrl;//getHostWebUrl();
+        var serverRelativeUrl = shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl);
+        var hostWebContext = new SP.ClientContext(shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl));
 
         var fileUrl = serverRelativeUrl + fileRelativeUrl;
         var file = hostWebContext.get_web().getFileByServerRelativeUrl(fileUrl);

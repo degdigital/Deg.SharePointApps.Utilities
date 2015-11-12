@@ -184,4 +184,4 @@ shpUtility.factory('shpList', ['$log', '$q', 'shpCommon', function($log, $q, shp
 
         return deferred.promise;
     }
-}
+}]);
