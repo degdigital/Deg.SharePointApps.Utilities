@@ -24,7 +24,7 @@
 * SPHostUrl
 * HostWebContext
 * GetQsParam
-
+* GetRelativeUrlFromAbsolute
 
 # ContentType (shpContentType)
 * CreateAtHost: Creates a content type in root site.
@@ -35,3 +35,35 @@
 * Update
 
 # List (shpList)
+* CreateAtHost
+* AddFieldToListAtHost
+* Exist
+
+# Column (shpColumn)
+* CreateAtHost
+
+# File (shpFile)
+* CreateAtHost
+* LoadAtHost
+* CheckOutAtHost
+* PublishFileToHost
+* UploadFileToHostWeb
+
+# Group (shpGroup)
+* LoadAtHost
+* CreateAtHost
+* IsCurrentUserMember
+
+# PropertyBag (shpPropertyBag)
+* SaveObjToCurrentWeb
+* SaveObjToRootWeb
+* GetValue
+
+# Taxonomy (shpTaxonomy)
+* GetTermSetValues
+
+# User (shpUser)
+* GetCurrentUserName
+* GetCurrent
+* GetId
+* GetCurrentUserProfileProperties
