@@ -87,8 +87,9 @@ shpUtility.factory('shpItem', ['$log', '$q', 'shpCommon', function($log, $q, shp
 	function updateListItem(listName, listItemId, listProperties) {
 		var deferred = $q.defer();
 
-		var appContext = new SP.ClientContext(getAppWebUrl());
-		var hostContext = new SP.AppContextSite(appContext, getHostWebUrl());
+		/* TODO: Use variables for app and host url's */
+		var appContext = new SP.ClientContext(appweburl);
+		var hostContext = new SP.AppContextSite(appContext, hostUrl);
 
 		var oList = hostContext.get_web().get_lists().getByTitle(listName);
 		var oListItem = oList.getItemById(listItemId);

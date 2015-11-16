@@ -17,6 +17,7 @@ var config = {
         'src/components/deg.sharepoint.module.list.js',
         'src/components/deg.sharepoint.module.propertybag.js',
         'src/components/deg.sharepoint.module.user.js',
+        'src/components/deg.sharepoint.module.taxonomy.js',
         'src/components/deg.sharepoint.module.service.js'
     ]
 }

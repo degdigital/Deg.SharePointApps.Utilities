@@ -5,4 +5,5 @@
  * Contributors: Andres Baez, Gonzalo Barbitta
  */
 
+'use strict';
 var shpUtility = angular.module("Deg.SharePoint", []);

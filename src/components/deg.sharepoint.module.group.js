@@ -13,8 +13,8 @@ shpUtility.factory('shpGroup', ['$http', 'shpCommon', function($http, shpCommon)
     /** Groups **/
     function loadGroupAtHostWeb(groupName, callback) {
         var hostWebUrl = hostUrl;
-        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
-        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+        var serverRelativeUrl = shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl);
+        var hostWebContext = new SP.ClientContext(shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl));
 
         var groupCollection = hostWebContext.get_web().get_siteGroups();
         var group = groupCollection.getByName(groupName);
@@ -39,8 +39,8 @@ shpUtility.factory('shpGroup', ['$http', 'shpCommon', function($http, shpCommon)
 
     function createGroupAtHostWeb(groupName, callback) {
         var hostWebUrl = hostUrl;
-        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
-        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+        var serverRelativeUrl = shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl);
+        var hostWebContext = new SP.ClientContext(shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl));
 
         var group = new SP.GroupCreationInformation();
         group.set_title(groupName);

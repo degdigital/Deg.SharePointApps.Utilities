@@ -1,4 +1,3 @@
-'use strict';
 shpUtility.service('spService', ['$http', '$log', '$q',
     'shpCommon',
     'shpUser',
@@ -9,8 +8,9 @@ shpUtility.service('spService', ['$http', '$log', '$q',
     'shpFile',
     'shpColumn',
     'shpGroup',
+    'shpTaxonomy',
 
-    function($http, $log, $q, shpCommon, shpUser, shpPropertyBag, shpItem, shpList, shpContentType, shpFile, shpColumn, shpGroup) {
+    function($http, $log, $q, shpCommon, shpUser, shpPropertyBag, shpItem, shpList, shpContentType, shpFile, shpColumn, shpGroup, shpTaxonomy) {
 
         return {
             User: {
@@ -62,7 +62,7 @@ shpUtility.service('spService', ['$http', '$log', '$q',
                 IsCurrentUserMember: shpGroup.IsCurrentUserMember
             },
             Taxonomy: {
-                GetTermSetValues: getTermSetValues
+                GetTermSetValues: shpTaxonomy.GetTermSetValues
             }
         };
     }

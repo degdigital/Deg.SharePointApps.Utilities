@@ -1,6 +1,6 @@
 {
   "name": "deg.sharepoint.utilities",
-  "description": "Provides most common utilities to work with Sharepoint",
+  "description": "AngularJS utilities for SharePoint App development",
   "main": "dist/deg.sharepoint.module.js",
   "authors": [
     "DegDigital"

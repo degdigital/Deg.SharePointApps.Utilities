@@ -5,6 +5,7 @@
  * Contributors: Andres Baez, Gonzalo Barbitta
  */
 
+'use strict';
 var shpUtility = angular.module("Deg.SharePoint", []);
 shpUtility.factory('shpCommon', function() {
 
@@ -383,8 +384,8 @@ shpUtility.factory('shpGroup', ['$http', 'shpCommon', function($http, shpCommon)
     /** Groups **/
     function loadGroupAtHostWeb(groupName, callback) {
         var hostWebUrl = hostUrl;
-        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
-        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+        var serverRelativeUrl = shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl);
+        var hostWebContext = new SP.ClientContext(shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl));
 
         var groupCollection = hostWebContext.get_web().get_siteGroups();
         var group = groupCollection.getByName(groupName);
@@ -409,8 +410,8 @@ shpUtility.factory('shpGroup', ['$http', 'shpCommon', function($http, shpCommon)
 
     function createGroupAtHostWeb(groupName, callback) {
         var hostWebUrl = hostUrl;
-        var serverRelativeUrl = getRelativeUrlFromAbsolute(hostWebUrl);
-        var hostWebContext = new SP.ClientContext(getRelativeUrlFromAbsolute(hostWebUrl));
+        var serverRelativeUrl = shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl);
+        var hostWebContext = new SP.ClientContext(shpCommon.GetRelativeUrlFromAbsolute(hostWebUrl));
 
         var group = new SP.GroupCreationInformation();
         group.set_title(groupName);
@@ -552,8 +553,9 @@ shpUtility.factory('shpItem', ['$log', '$q', 'shpCommon', function($log, $q, shp
 	function updateListItem(listName, listItemId, listProperties) {
 		var deferred = $q.defer();
 
-		var appContext = new SP.ClientContext(getAppWebUrl());
-		var hostContext = new SP.AppContextSite(appContext, getHostWebUrl());
+		/* TODO: Use variables for app and host url's */
+		var appContext = new SP.ClientContext(appweburl);
+		var hostContext = new SP.AppContextSite(appContext, hostUrl);
 
 		var oList = hostContext.get_web().get_lists().getByTitle(listName);
 		var oListItem = oList.getItemById(listItemId);
@@ -888,7 +890,38 @@ shpUtility.factory('shpUser', ['$log', '$q', 'shpCommon', function($log, $q, shp
     }
 
 }]);
-'use strict';
+shpUtility.factory('shpTaxonomy', ['$http', function ($http) {
+
+    return {
+        GetTermSetValues: getTermSetValues
+    }
+
+    function getTermSetValues(taxonomyGroup, termSetName, callback) {
+        var context = SP.ClientContext.get_current();
+
+        var session = SP.Taxonomy.TaxonomySession.getTaxonomySession(context);
+        var termStore = session.getDefaultSiteCollectionTermStore();
+        var group = termStore.get_groups().getByName(taxonomyGroup);
+        var termSet = group.get_termSets().getByName(termSetName);
+        var terms = termSet.getAllTerms();
+
+        context.load(terms);
+        context.executeQueryAsync(
+            function () {
+                var values = [];
+                var termEnumerator = terms.getEnumerator();
+                while (termEnumerator.moveNext()) {
+                    var currentTerm = termEnumerator.get_current();
+                    values.push({ 'id': currentTerm.get_id(), 'name': currentTerm.get_name() });
+                }
+                if (callback) callback(values);
+            },
+            function (sender, args) {
+                $log.log(args.get_message());
+            }
+        );
+    }
+}]);
 shpUtility.service('spService', ['$http', '$log', '$q',
     'shpCommon',
     'shpUser',
@@ -899,8 +932,9 @@ shpUtility.service('spService', ['$http', '$log', '$q',
     'shpFile',
     'shpColumn',
     'shpGroup',
+    'shpTaxonomy',
 
-    function($http, $log, $q, shpCommon, shpUser, shpPropertyBag, shpItem, shpList, shpContentType, shpFile, shpColumn, shpGroup) {
+    function($http, $log, $q, shpCommon, shpUser, shpPropertyBag, shpItem, shpList, shpContentType, shpFile, shpColumn, shpGroup, shpTaxonomy) {
 
         return {
             User: {
@@ -952,7 +986,7 @@ shpUtility.service('spService', ['$http', '$log', '$q',
                 IsCurrentUserMember: shpGroup.IsCurrentUserMember
             },
             Taxonomy: {
-                GetTermSetValues: getTermSetValues
+                GetTermSetValues: shpTaxonomy.GetTermSetValues
             }
         };
     }
