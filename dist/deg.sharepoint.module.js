@@ -1069,28 +1069,44 @@ shpUtility.directive('ngPeoplePicker', function() {
 
         var elementId = attrs.id;
 
-        var returnUsername = (attrs.ngPeoplePicker == "username");
-
         var schema = {
             SearchPrincipalSource: 15,
             ResolvePrincipalSource: 15,
             MaximumEntitySuggestions: 50,
             Width: "100%",
-            OnUserResolvedClientScript: onUserResolve
+            OnUserResolvedClientScript: onUserResolve,
+            Required: true
         };
 
-        schema.Required = true;
+        if (typeof attrs.accounttype === 'undefined') schema.PrincipalAccountType = "User,DL";
+        else schema.PrincipalAccountType = attrs.accounttype;
 
-        schema.PrincipalAccountType = "User,DL";
+        if (attrs.allowmultiple) schema.AllowMultipleValues = true;
+        else schema.AllowMultipleValues = false;
 
-        if (attrs.allowmultiple) {
-            schema.AllowMultipleValues = true;
-        } else {
-            schema.AllowMultipleValues = false;
-        }
+        var returnUsername = (attrs.ngPeoplePicker == "username");
 
         SP.SOD.executeFunc('sp.js', 'SP.ClientContext', function() {
-            SPClientPeoplePicker_InitStandaloneControlWrapper(elementId, null, schema);
+            if (typeof attrs.usedefault === 'undefined') {
+				SPClientPeoplePicker_InitStandaloneControlWrapper(elementId, null, schema);
+            }
+            else {
+                shpUser.GetCurrent(function (user) {
+                    var users = new Array(1);
+                    var currentUser = new Object();
+                    currentUser.AutoFillDisplayText = user.get_title();
+                    currentUser.AutoFillKey = user.get_loginName();
+                    currentUser.Description = user.get_email();
+                    currentUser.DisplayText = user.get_title();
+                    currentUser.EntityType = "User";
+                    currentUser.IsResolved = true;
+                    currentUser.Key = user.get_loginName();
+                    currentUser.Resolved = true;
+                    users[0] = currentUser;
+
+                    SPClientPeoplePicker_InitStandaloneControlWrapper(elementId, users, schema);
+                });
+            }
         });
 
         function onUserResolve() {
@@ -1104,13 +1120,20 @@ shpUtility.directive('ngPeoplePicker', function() {
                 });
             } else {
                 angular.forEach(people, function(person) {
-                    returnValues.push(person.EntityData.Email);
+                    if (person.EntityType == 'User') returnValues.push(person.EntityData.Email);
+                    if (person.EntityData.PrincipalType == "SharePointGroup") returnValues.push(person.EntityData.SPGroupID);
                 });
             }
             if (schema.AllowMultipleValues) {
                 ngModel.$setViewValue(returnValues);
-            } else if (returnValues.length > 0) {
-                ngModel.$setViewValue(returnValues[0]);
+            } 
+			else {
+				if (returnValues.length > 0) {
+					ngModel.$setViewValue(returnValues[0]);
+				}
+                else {
+                    ngModel.$setViewValue('');
+                }
             }
         }
     }
