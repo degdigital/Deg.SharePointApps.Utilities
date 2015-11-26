@@ -134,7 +134,7 @@ shpUtility.directive('ngChromeControl', ['$window', function($window) {
     };
 }]);
 
-shpUtility.directive('ngPeoplePicker', function() {
+shpUtility.directive('ngPeoplePicker', ['shpUser', function(shpUser) {
     return {
         restrict: 'A',
         require: "ngModel",
@@ -213,4 +213,4 @@ shpUtility.directive('ngPeoplePicker', function() {
             }
         }
     }
-});
+}]);
