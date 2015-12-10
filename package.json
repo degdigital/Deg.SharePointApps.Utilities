@@ -1,0 +1,25 @@
+{
+  "name": "deg.sharepoint.utilities",
+  "version": "1.0.0",
+  "description": "Provides most common utilities to work with Sharepoint",
+  "main": "dist/deg.sharepoint.module.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/degdigital/Deg.SharePointApps.Utilities.git"
+  },
+  "keywords": [
+    "sharepoint",
+    "utilities",
+    "rest",
+    "services"
+  ],
+  "author": "DegDigital",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/degdigital/Deg.SharePointApps.Utilities/issues"
+  },
+  "homepage": "https://github.com/degdigital/Deg.SharePointApps.Utilities#readme"
+}
