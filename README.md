@@ -8,11 +8,21 @@ npm install --save-dev gulp-concat gulp-uglify gulp-rename
 ## Download it using bower
 
 ```bash
-* bower install DegSharepointUtilities
+bower install DegSharepointUtilities
 ```
 
-# Deg.SharePointApps.Utilities
+# Directives
 * Automatically resize app part iframes
+```html
+<ng-app-frame>
+</ng-app-frame>
+```
+* People Picker 
+```html
+<div ng-people-picker accounttype="SPGroup" ></div>
+
+<div ng-people-picker accounttype="User" ></div>
+```
 * Directive for client ribbon bar
 * Utilities for SharePoint property bag management
 * CRUD List Operations
@@ -23,26 +33,40 @@ npm install --save-dev gulp-concat gulp-uglify gulp-rename
 
 # Common (shpCommon)
 * GetFormDigest
+```js
+spService.Utilities.GetFormDigest(function (result) {
+	..
+});
+```
 * SPAppWebUrl
 * SPHostUrl
 * HostWebContext
 * GetQsParam
-* GetRelativeUrlFromAbsolute
-
-## Usage
-
 ```js
 var resultsPerPage = spService.Utilities.GetQsParam("ResultsPerPage");
 ```
+* GetRelativeUrlFromAbsolute
+```js
+var relativeUrl = spService.Utilities.GetRelativeUrlFromAbsolute("url");
+```
+
 
 
 # ContentType (shpContentType)
 * CreateAtHost: Creates a content type in root site.
+```js
+```
 
 # Item (shpItem)
 * Create
+```js
+```
 * GetAll
+```js
+```
 * Update
+```js
+```
 
 # List (shpList)
 * CreateAtHost
@@ -96,8 +120,17 @@ spService.Lists.Exist(contactList, function () {
 # Group (shpGroup)
 * LoadAtHost
 * CreateAtHost
+```js
+spService.Groups.CreateAtHost("FUSE Picture Gallery Admins");
+```
 * IsCurrentUserMember
-
+```js
+spService.Groups.IsCurrentUserMember('FUSE Picture Gallery Admins',
+    function (result) {
+        ..
+    }
+);
+```
 # PropertyBag (shpPropertyBag)
 * SaveObjToCurrentWeb
 * SaveObjToRootWeb
@@ -105,6 +138,11 @@ spService.Lists.Exist(contactList, function () {
 
 # Taxonomy (shpTaxonomy)
 * GetTermSetValues
+```js
+spService.Taxonomy.GetTermSetValues("FUSE", "FUSE Business Units", function (termStoreValues) { 
+..
+});
+```
 
 # User (shpUser)
 * GetCurrentUserName
