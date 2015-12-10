@@ -17,6 +17,11 @@
 * Helpers for creating and publishing Files
 * App Context Helpers (AppUrl, HostUrl, currentUser, etc)
 
+## Usage
+
+```js
+var resultsPerPage = spService.Utilities.GetQsParam("ResultsPerPage");
+```
 
 # Common (shpCommon)
 * GetFormDigest
