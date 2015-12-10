@@ -1,12 +1,15 @@
-# Setup environment
+## Setup environment
 
-* npm install --save-dev gulp
-* npm install --save-dev gulp-concat gulp-uglify gulp-rename
+```bash
+npm install --save-dev gulp
+npm install --save-dev gulp-concat gulp-uglify gulp-rename
+```
 
-# Download it using bower
+## Download it using bower
 
+```bash
 * bower install DegSharepointUtilities
-
+```
 
 # Deg.SharePointApps.Utilities
 * Automatically resize app part iframes
@@ -17,11 +20,6 @@
 * Helpers for creating and publishing Files
 * App Context Helpers (AppUrl, HostUrl, currentUser, etc)
 
-## Usage
-
-```js
-var resultsPerPage = spService.Utilities.GetQsParam("ResultsPerPage");
-```
 
 # Common (shpCommon)
 * GetFormDigest
@@ -30,6 +28,13 @@ var resultsPerPage = spService.Utilities.GetQsParam("ResultsPerPage");
 * HostWebContext
 * GetQsParam
 * GetRelativeUrlFromAbsolute
+
+## Usage
+
+```js
+var resultsPerPage = spService.Utilities.GetQsParam("ResultsPerPage");
+```
+
 
 # ContentType (shpContentType)
 * CreateAtHost: Creates a content type in root site.
@@ -41,8 +46,42 @@ var resultsPerPage = spService.Utilities.GetQsParam("ResultsPerPage");
 
 # List (shpList)
 * CreateAtHost
+```js
+var contactList = "Contacts";
+spService.Lists.CreateAtHost(contactList, createFields);
+```
 * AddFieldToListAtHost
+```js
+//Generic example
+spService.Lists.AddFieldToListAtHost(LISTNAME, DISPLAYNAME, INTERNALNAME, bool:REQUIRED, TYPE, FIELD EXTRA, function:CALLBACK)
+
+var createFields = function () {
+	//Text
+    spService.Lists.AddFieldToListAtHost(contactList, "Email", "fuseEmail", false, "Text", "", null)
+    .then(function () {
+    	//User
+        return spService.Lists.AddFieldToListAtHost(contactList, "User", "fuseUser", false, "User", "", null);
+    })
+    .then(function () {
+    	//Image
+        return spService.Lists.AddFieldToListAtHost(contactList, "Picture", "fusePic", false, "URL", "Image", null);
+    })
+    .then(function () {
+    	//Hyperlink
+        return spService.Lists.AddFieldToListAtHost(contactList, "Profile Page", "fuseLink", false, "URL", "Hyperlink", null);
+    })
+    .then(function () {
+    	//TaxonomyFieldType
+        return spService.Lists.AddFieldToListAtHost(contactList, "Enterprise Keywords", "TaxKeyword", false, "TaxonomyFieldType", null, null);
+    });
+};
+```
 * Exist
+```js
+spService.Lists.Exist(contactList, function () {
+    ..
+});
+```
 
 # Column (shpColumn)
 * CreateAtHost
