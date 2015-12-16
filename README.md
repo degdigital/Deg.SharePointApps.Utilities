@@ -27,6 +27,7 @@ bower install DegSharepointUtilities
     * accounttype: Sets the schema's PrincipalAccountType. Default value is *User,DL*
     * allowmultiple: If added, indicates that the control accepts multiple selection. Default value is *false*
     * usedefault: If added, sets the current (logged) user as selected
+    
 
     ```html
     <div ng-people-picker accounttype='SPGroup' allowmultiple></div>
