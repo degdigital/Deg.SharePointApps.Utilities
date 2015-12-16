@@ -14,13 +14,24 @@ bower install DegSharepointUtilities
 # Directives
 * Automatically resize app part iframes
 
-`<ng-app-frame></ng-app-frame>`
+    ngAppFrame directive will check your app container’s height on every $digest cycle. In other words, every time your content changes, it will automatically resize the iframe using HTML's post message to communicate with the parent parent window. 
+
+    ```html
+    <ng-app-frame></ng-app-frame>
+    ```
 
 * People Picker 
 
-`<div ng-people-picker accounttype='SPGroup'></div>`
+    ngPeoplePicker directive renders and initializes a People Picker control which lets users search for and select valid user accounts for people, groups, and claims in their organization. This directive supports mutliple configuration attributes
 
-`<div ng-people-picker accounttype='User'></div>`
+    * accounttype: Sets the schema's PrincipalAccountType. Default value is *User,DL*
+    * allowmultiple: If added, indicates that the control accepts multiple selection. Default value is *false*
+    * usedefault: If added, sets the current (logged) user as selected
+
+    ```html
+    <div ng-people-picker accounttype='SPGroup' allowmultiple></div>
+    <div ng-people-picker accounttype='User' usedefault></div>
+    ```
 
 * Directive for client ribbon bar
 * Utilities for SharePoint property bag management
@@ -86,32 +97,84 @@ bower install DegSharepointUtilities
     ```
 
 # ContentType (shpContentType)
-* CreateAtHost: Creates a content type in root site.
+* CreateAtHost
+
+    Creates a content type in the host web.
+
     ```js
+    spService.CTypes.CreateAtHost(cTypeInfo, function(){
+        ..
+    });
     ```
 
 # Item (shpItem)
 * Create
+
+    This service receives the list's name, item's properties and a callback function to be invoked after the operation is completed. If the operation is unsuccessful, the error is logged to the browser's console.
+
     ```js
+    spService.Items.Create(listName, itemProperties, function() {
+        .. 
+    })
     ```
 
 * GetAll
+
+    This service receives the list's name and an optional second paramter which is a CAML Query and returns a Promise object. Handlers need to be added to be called when the object is resolved or rejected.
+
     ```js
+    spService.Items.GetAll(listName, camlQuery).then(
+        function (items) {
+            ..
+        },
+        function (error) { 
+            ..
+        }
+    );
     ```
 
 * Update
+
+    Update service receives the list's name, list item's Id, and a JavaScript Object with the list item's properties, and returns a Promise object. Handlers need to be added to be called when the object is resolved or rejected. 
+
     ```js
+    spService.Items.Update(listName, itemId, itemProperties).then(
+        function () {
+            ..
+        }, 
+        function (error) {
+            ..
+        }
+    );
     ```
 
 # List (shpList)
 * CreateAtHost
 
+    This service creates a SP List in the host web with the name and template received by paramter. It also receives a callback function to be invoked after the operation is completed. If the operation is unsuccessful, the error is logged to the browser's console. 
+
+    Since it also returns a Promises object, this service can be invoked in two different ways.
+
     ```js
-    var contactList = "Contacts";
-    spService.Lists.CreateAtHost(contactList, createFields);
+    // Using callback function
+    spService.Lists.CreateAtHost(listName, function(){
+        ..
+    }, listTemplate);
+
+    // Using Promises
+    spService.Lists.CreateAtHost(listName, listTemplate).then(
+        function () {
+            ..
+        }, 
+        function (error) {
+            ..
+        }
+    );
     ```
 
 * AddFieldToListAtHost
+
+    Adds a column to a SP List that exists in the host web.
 
     ```js
     //Generic example
@@ -141,14 +204,30 @@ bower install DegSharepointUtilities
 
 * Exist
 
+    This service checks if a SP List exists in the host web by its name and returns a Promise object. Handlers need to be added to be called when the object is resolved or rejected.
+
     ```js
-    spService.Lists.Exist(contactList, function () {
-        ..
-    });
+    spService.Lists.Exist(listName).then(
+        function () {
+            ..
+        }, 
+        function (error) {
+            ..
+        }
+    );
     ```
 
 # Column (shpColumn)
 * CreateAtHost
+
+    Creates columns in the host web. Columns need to be specificied in a XML format as follows:
+    `<Field DisplayName='Field Name' Name='NoSpaceName' ID='{GUID}' Group='Group Name' Type='Text' />`
+
+    ```js
+    spService.Columns.CreateAtHost(fieldsXml, function(){
+        ..
+    });
+    ```
 
 # File (shpFile)
 * CreateAtHost
@@ -249,7 +328,7 @@ bower install DegSharepointUtilities
 
 * IsCurrentUserMember
 
-    This service checks whether the current (logged) user is member of a SharePoint group, and invokes a callback function with a JavaScript Object with two properties: `{ Success: boolean, Message: string}` as a paramter, indicating whether the operation was successful, and further information about the error in case it failed.
+    This service checks whether the current (logged) user is member of a SharePoint group, and invokes a callback function with a JSON Object with two properties: `{ Success: boolean, Message: string}` as a paramter, indicating whether the operation was successful, and further information about the error in case it failed.
 
     ```js
     spService.Groups.IsCurrentUserMember('FUSE Picture Gallery Admins',
@@ -261,8 +340,30 @@ bower install DegSharepointUtilities
 
 # PropertyBag (shpPropertyBag)
 * SaveObjToCurrentWeb
+
+    ```js
+    spService.PropBag.SaveObjToCurrentWeb(jsonObject, function(){
+        ..
+    });
+    ```
+
 * SaveObjToRootWeb
+
+    ```js
+    spService.PropBag.SaveObjToRootWeb(jsonObject, function(){
+        ..
+    });
+    ```
+
 * GetValue
+
+    Receives the property whose value we would like to retrieve, and invokes a callback function if the the operation is successful. Otherwise, the error is logged to the browser's console. 
+
+    ```js
+    spService.PropBag.GetValue(key, function(){
+        ..
+    });
+    ```
 
 # Taxonomy (shpTaxonomy)
 * GetTermSetValues
