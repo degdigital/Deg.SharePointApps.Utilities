@@ -27,7 +27,6 @@ bower install DegSharepointUtilities
     * accounttype: Sets the schema's PrincipalAccountType. Default value is *User,DL*
     * allowmultiple: If added, indicates that the control accepts multiple selection. Default value is *false*
     * usedefault: If added, sets the current (logged) user as selected
-    
 
     ```html
     <div ng-people-picker accounttype='SPGroup' allowmultiple></div>
@@ -45,7 +44,7 @@ bower install DegSharepointUtilities
 # Common (shpCommon)
 * GetFormDigest
 
-    When using REST, you need to add a client side token to validate posts back to SharePoint. This token is usually know as *Form Digest*. This service receives a callback function that is inkoked after the operation is completed. The function receives a a JavaScript object as a parameter whose properties depend on the operation's outcome. If successful, the Object is `{ error: false, requestDigest: requestDigest }`, whereas a failure generates this Object: `{ error: true, errorMessage: .. }`.
+    When using REST, you need to add a client side token to validate posts back to SharePoint. This token is usually know as *Form Digest*. This service receives a callback function that is inkoked after the operation is completed. The function receives a a JSON object as a parameter whose properties depend on the operation's outcome. If successful, the Object is `{ error: false, requestDigest: requestDigest }`, whereas a failure generates this Object: `{ error: true, errorMessage: .. }`.
 
     ```js
     spService.Utilities.GetFormDigest(function (result) {
